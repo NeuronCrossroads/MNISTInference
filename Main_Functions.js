@@ -1,3 +1,7 @@
+document.ontouchmove = function(event){
+    event.preventDefault();
+}
+
 //Compute when the page loads
 var data;
 function startUp() {
