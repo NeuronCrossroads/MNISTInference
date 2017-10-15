@@ -68,7 +68,7 @@ function predict(inputs) {
   //Computations must be run in the math scope. Variables are disposed at the end
   var network = math.scope((keep,track) => {
     var input = track(deeplearn.Array1D.new(inputs));
-    //input = track(math.arrayDividedByScalar(input, deeplearn.Scalar.new(255)));
+    input = track(math.arrayDividedByScalar(input, deeplearn.Scalar.new(255)));
 
     //Hidden layer 1
     var m1 = math.vectorTimesMatrix(input,W1);
