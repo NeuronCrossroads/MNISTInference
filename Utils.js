@@ -1,48 +1,13 @@
-var ct_weights_1 = [];
-var ct_biases_1 = [];
-var ct_weights_2 = [];
-var ct_biases_2 = [];
-var ct_weights_3 = [];
-var ct_biases_3 = [];
 
-var W1,b1,W2,b2,W3,b3;
 
-//Following Function gets 2D arrays and concatenates then into a 1D Arrays
-function compute_parameters() {
-  ct_weights_1 = [];
-  ct_biases_1 = [];
-  ct_weights_2 = [];
-  ct_biases_2 = [];
-  ct_weights_3 = [];
-  ct_biases_3 = [];
-  //Layer 1
-  for ( var i = 0; i < weights1.length;i++){
-    ct_weights_1 = ct_weights_1.concat(weights1[i]);
-  }
-  for ( var i = 0; i < biases1.length;i++){
-    ct_biases_1 = ct_biases_1.concat(biases1[i]);
-  }
-  //The deeplearn.Arrays are created from the concatenated arrays for the computation
-  W1 = deeplearn.Array2D.new([weights1.length, weights1[0].length], ct_weights_1);
-  b1 = deeplearn.Array1D.new(ct_biases_1);
-  //Layer 2
-  for ( var i = 0; i < weights2.length;i++){
-    ct_weights_2 = ct_weights_2.concat(weights2[i]);
-  }
-  for ( var i = 0; i < biases2.length;i++){
-    ct_biases_2 = ct_biases_2.concat(biases2[i]);
-  }
-  W2 = deeplearn.Array2D.new([weights2.length, weights2[0].length], ct_weights_2);
-  b2 = deeplearn.Array1D.new(ct_biases_2);
-  //Layer 3
-  for ( var i = 0; i < weights3.length;i++){
-    ct_weights_3 = ct_weights_3.concat(weights3[i]);
-  }
-  for ( var i = 0; i < biases3.length;i++){
-    ct_biases_3 = ct_biases_3.concat(biases3[i]);
-  }
-  W3 = deeplearn.Array2D.new([weights3.length, weights3[0].length], ct_weights_3);
-  b3 = deeplearn.Array1D.new(ct_biases_3);
+var Conv1_Weights,Conv1_Biases,Conv2_Weights,Conv2_Biases,FC1_Weights,FC1_Biases;
+function generate_variables() {
+  Conv1_Weights = deeplearn.Array4D.new([5,5,1,32],Parameters["Conv1/Weights"]);
+  Conv1_Biases = deeplearn.Array1D.new(Parameters["Conv1/Biases"]);
+  Conv2_Weights = deeplearn.Array4D.new([5,5,32,64],Parameters["Conv2/Weights"]);
+  Conv2_Biases = deeplearn.Array1D.new(Parameters["Conv2/Biases"]);
+  FC1_Weights = deeplearn.Array2D.new([256,10],Parameters["FC1/Weights"]);
+  FC1_Biases = deeplearn.Array1D.new(Parameters["FC1/Biases"]);
 }
 
 //Finds the index number of the greatest probability
@@ -67,24 +32,23 @@ function predict(inputs) {
 
   //Computations must be run in the math scope. Variables are disposed at the end
   var network = math.scope((keep,track) => {
-    var input = track(deeplearn.Array1D.new(inputs));
-    input = track(math.arrayDividedByScalar(input, deeplearn.Scalar.new(255)));
+    var input = track(deeplearn.Array3D.new([28,28,1],inputs));
 
-    //Hidden layer 1
-    var m1 = math.vectorTimesMatrix(input,W1);
-    var z1 = math.add(m1,b1);
-    var a1 = math.relu(z1);
-
-    //Hidden layer 2
-    var m2 = math.vectorTimesMatrix(a1,W2);
-    var z2 = math.add(m2,b2);
-    var a2 = math.relu(z2);
-
-    //Output layer(Hint: softmax)
-    var m3 = math.vectorTimesMatrix(a2,W3);
-    var z3 = math.add(m3,b3);
-    var a3 = math.softmax(z3);
-
+    //Conv 1
+    conv1 = track(math.conv2d(input,Conv1_Weights,Conv1_Biases,[2,2],"same"));
+    conv1_relu = math.relu(conv1);
+    //Pool 1
+    pool1 = math.maxPool(conv1_relu,[2,2],[2,2],"same");
+    //Conv 2
+    conv2 = math.conv2d(pool1,Conv2_Weights,Conv2_Biases,[2,2],"same");
+    conv2_relu = math.relu(conv2);
+    //Pool 2
+    pool2 = math.maxPool(conv2_relu,[2,2],[2,2],"same");
+    //Flatten
+    flattened = pool2.flatten();
+    multiply = math.vectorTimesMatrix(flattened,FC1_Weights);
+    added = math.add(multiply,FC1_Biases);
+    a3 = math.softmax(added)
     //.getValues(); converts WebGLTexture to array
     prediction = a3.getValues();
   });

@@ -5,7 +5,7 @@ document.ontouchmove = function(event){
 //Compute when the page loads
 var data;
 function startUp() {
-  compute_parameters();
+  generate_variables();
   data = new Array2D(28,28);
   data.initZeros();
 }
